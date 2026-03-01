@@ -1,0 +1,133 @@
+import random
+import time
+import bisect
+import os
+
+ARCHIVO = "numeros.txt"
+CANTIDAD = 10_000_000
+RANGO_MIN = -50_000_000
+RANGO_MAX = 50_000_000
+
+
+
+# Generar archivo con números aleatorios
+
+def generar_archivo():
+    if os.path.exists(ARCHIVO):
+        print("El archivo ya existe. Saltando generación...\n")
+        return
+
+    print("Generando archivo con 10,000,000 números...")
+    with open(ARCHIVO, "w") as f:
+        for _ in range(CANTIDAD):
+            numero = random.randint(RANGO_MIN, RANGO_MAX)
+            f.write(f"{numero}\n")
+
+    print("Archivo generado correctamente.\n")
+
+
+
+# Cargar datos en memoria
+
+def cargar_datos():
+    print("Cargando datos en memoria...")
+    with open(ARCHIVO, "r") as f:
+        datos = [int(line.strip()) for line in f]
+    print("Datos cargados.\n")
+    return datos
+
+
+
+# Construir estructuras
+
+def construir_estructuras(datos):
+    print("Construyendo estructuras...")
+
+    # Arreglo ordenado
+    inicio = time.perf_counter()
+    datos_ordenados = sorted(datos)
+    fin = time.perf_counter()
+    print(f"Tiempo construcción arreglo ordenado: {fin - inicio:.4f} s")
+
+    # Tabla hash
+    inicio = time.perf_counter()
+    tabla_hash = set(datos)
+    fin = time.perf_counter()
+    print(f"Tiempo construcción tabla hash: {fin - inicio:.4f} s\n")
+
+    return datos_ordenados, tabla_hash
+
+
+
+# Búsqueda binaria
+
+def busqueda_binaria(arreglo, objetivo):
+    index = bisect.bisect_left(arreglo, objetivo)
+    return index < len(arreglo) and arreglo[index] == objetivo
+
+
+#  Medición de rendimiento
+
+def medir_rendimiento(arreglo, tabla_hash):
+    NUM_PRUEBAS = 100_000
+    print(f"Ejecutando {NUM_PRUEBAS:,} búsquedas automáticas...\n")
+
+    pruebas = [random.randint(RANGO_MIN, RANGO_MAX) for _ in range(NUM_PRUEBAS)]
+
+    # Medir arreglo ordenado
+    inicio = time.perf_counter()
+    for num in pruebas:
+        busqueda_binaria(arreglo, num)
+    fin = time.perf_counter()
+    tiempo_arreglo = (fin - inicio) / NUM_PRUEBAS
+
+    # Medir tabla hash
+    inicio = time.perf_counter()
+    for num in pruebas:
+        num in tabla_hash
+    fin = time.perf_counter()
+    tiempo_hash = (fin - inicio) / NUM_PRUEBAS
+
+    return tiempo_arreglo, tiempo_hash
+
+
+
+#  Programa principal
+
+def main():
+    generar_archivo()
+    datos = cargar_datos()
+    arreglo, tabla_hash = construir_estructuras(datos)
+
+    # Búsqueda manual
+    while True:
+        entrada = input("Ingrese un número para buscar (o 'salir'): ")
+        if entrada.lower() == "salir":
+            break
+
+        try:
+            numero = int(entrada)
+        except ValueError:
+            print("Ingrese un número válido.\n")
+            continue
+
+        encontrado_binaria = busqueda_binaria(arreglo, numero)
+        encontrado_hash = numero in tabla_hash
+
+        print(f"Arreglo ordenado: {'Encontrado' if encontrado_binaria else 'No encontrado'}")
+        print(f"Tabla hash: {'Encontrado' if encontrado_hash else 'No encontrado'}\n")
+
+    # Medición automática
+    tiempo_arreglo, tiempo_hash = medir_rendimiento(arreglo, tabla_hash)
+
+    print("\nTabla comparativa de rendimiento (tiempo promedio por búsqueda)")
+    print("---------------------------------------------------------------")
+    print(f"{'Estructura':<20} | {'Tiempo promedio (segundos)':<25}")
+    print("---------------------------------------------------------------")
+    print(f"{'Arreglo ordenado':<20} | {tiempo_arreglo:.12f}")
+    print(f"{'Tabla hash':<20} | {tiempo_hash:.12f}")
+    print("---------------------------------------------------------------")
+
+
+if __name__ == "__main__":
+    main()
